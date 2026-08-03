@@ -1,31 +1,19 @@
-import express from "express";
 import dotenv from "dotenv";
+import app from "./src/app.js";
+import mongoose from "mongoose";
 
 dotenv.config();
 
-const app = express();
+await mongoose.connect(process.env.MONGO_URI);
+if (mongoose.connection.readyState === 1) {
+  console.log("Connected to MongoDB");
+}else {
+  console.error("Failed to connect to MongoDB");
+  process.exit(1);
+}
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Test Route
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running successfully 🚀",
-  });
-});
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-// Start Server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
