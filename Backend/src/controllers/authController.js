@@ -8,13 +8,9 @@ export const signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      logger.warn({ email }, 'Signup attempt with existing email');
-      return next(new AppError('User already exists with this email', 400));
-    }
-
+    // Directly try to create user
     const user = await User.create({ name, email, password });
+    
     generateToken(res, user._id);
 
     logger.info({ userId: user._id }, 'New user registered');
@@ -24,7 +20,21 @@ export const signup = async (req, res, next) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
-    next(error);
+    // Handle duplicate key error (MongoDB unique index violation)
+    if (error.code === 11000) {
+      logger.warn({ email: req.body.email }, 'Signup attempt with existing email');
+      return res.status(400).json({
+        success: false,
+        message: "User already exists with this email"
+      });
+    }
+    
+    // Handle other errors (validation, etc.)
+    logger.error({ error: error.message }, 'Signup error');
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
   }
 };
 
