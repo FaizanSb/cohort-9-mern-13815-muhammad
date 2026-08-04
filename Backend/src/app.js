@@ -4,8 +4,16 @@ import pinoHttp from 'pino-http';
 import logger from './config/logger.js';
 import authRoutes from './routes/authRoutes.js';
 import { errorHandler, notFound } from './middlewares/errorHandler.js';
+import cors from "cors";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
