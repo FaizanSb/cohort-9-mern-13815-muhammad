@@ -2,6 +2,7 @@ import express from 'express';
 import { signup, login, logout } from '../controllers/authController.js';
 import { body } from 'express-validator';
 import { validateRequest } from '../middlewares/validateRequest.js';
+import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -26,6 +27,6 @@ router.post(
   login
 );
 
-router.post('/logout', logout);
+router.post("/logout", authMiddleware, logout);
 
 export default router;
