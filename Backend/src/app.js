@@ -19,6 +19,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(pinoHttp({ logger })); // har request/response automatically log hogi
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Backend is running 🚀",
+  });
+});
+
 app.use('/api/auth', authRoutes);
 
 app.use(notFound);
