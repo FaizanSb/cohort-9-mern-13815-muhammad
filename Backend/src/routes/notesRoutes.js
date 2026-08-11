@@ -27,7 +27,15 @@ router.post(
   createNote
 );
 
-router.put('/:id', updateNote);
+router.put(
+  '/:id',
+  [
+    body('title').optional().isString().trim().notEmpty().withMessage('Title cannot be empty'),
+    body('content').optional().isString().trim().notEmpty().withMessage('Content cannot be empty'),
+  ],
+  validateRequest,
+  updateNote
+);
 router.delete('/:id', deleteNote);
 
 export default router;

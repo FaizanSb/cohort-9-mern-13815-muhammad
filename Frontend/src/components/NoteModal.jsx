@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 const NoteModal = ({ isOpen, onClose, onSave, initialData }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -16,9 +17,15 @@ const NoteModal = ({ isOpen, onClose, onSave, initialData }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave({ title, content });
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await onSave({ title, content });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -45,11 +52,11 @@ const NoteModal = ({ isOpen, onClose, onSave, initialData }) => {
         />
 
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border text-gray-600 hover:bg-gray-50">
+          <button type="button" onClick={onClose} disabled={isSaving} className="px-4 py-2 rounded-md border text-gray-600 hover:bg-gray-50 disabled:opacity-50">
             Cancel
           </button>
-          <button type="submit" className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
-            Save
+          <button type="submit" disabled={isSaving} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </form>
