@@ -100,11 +100,27 @@ describe('Auth API', () => {
   });
 
   describe('POST /api/auth/logout', () => {
-    it('should logout and clear the cookie', async () => {
-      const res = await request(app).post('/api/auth/logout');
-
-      expect(res.status).to.equal(200);
-      expect(res.body.success).to.be.true;
+  it('should logout and clear the cookie', async () => {
+    // Pehle login karo, cookie hasil karo
+    const loginRes = await request(app).post('/api/auth/signup').send({
+      name: 'Logout Test User',
+      email: 'logouttest@example.com',
+      password: '123456',
     });
+    const cookie = loginRes.headers['set-cookie'];
+
+    // Ab cookie ke saath logout karo
+    const res = await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.success).to.be.true;
   });
+
+  it('should reject logout without authentication', async () => {
+    const res = await request(app).post('/api/auth/logout');
+    expect(res.status).to.equal(401);
+  });
+});
 });
