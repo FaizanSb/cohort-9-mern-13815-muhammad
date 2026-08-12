@@ -8,9 +8,13 @@
     "supertest": "^7.2.2"
   },
   "dependencies": {
+    "@tiptap/extension-placeholder": "^3.30.0",
+    "@tiptap/react": "^3.30.0",
+    "@tiptap/starter-kit": "^3.30.0",
     "axios": "^1.19.0",
     "cors": "^2.8.6",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.18.2"
+    "react-router-dom": "^7.18.2",
+    "sanitize-html": "^2.17.6"
   }
 }
