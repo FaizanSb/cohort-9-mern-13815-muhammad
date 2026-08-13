@@ -1,12 +1,24 @@
 import Note from '../models/Note.js';
 import AppError from '../utils/AppError.js';
 import logger from '../config/logger.js';
+import sanitizeHtml from 'sanitize-html';
 
-// @route GET /api/notes  (sirf logged-in user ki notes)
+const sanitizeOptions = {
+  allowedTags: ['p', 'strong', 'em', 's', 'h2', 'ul', 'ol', 'li', 'br'],
+  allowedAttributes: {},
+};
+
+// @route GET /api/notes
+// Sirf logged-in user ki notes
 export const getNotes = async (req, res, next) => {
   try {
     const notes = await Note.find({ user: req.userId }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, count: notes.length, notes });
+
+    res.status(200).json({
+      success: true,
+      count: notes.length,
+      notes,
+    });
   } catch (error) {
     next(error);
   }
@@ -15,9 +27,19 @@ export const getNotes = async (req, res, next) => {
 // @route GET /api/notes/:id
 export const getNoteById = async (req, res, next) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, user: req.userId });
-    if (!note) return next(new AppError('Note not found', 404));
-    res.status(200).json({ success: true, note });
+    const note = await Note.findOne({
+      _id: req.params.id,
+      user: req.userId,
+    });
+
+    if (!note) {
+      return next(new AppError('Note not found', 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      note,
+    });
   } catch (error) {
     next(error);
   }
@@ -27,10 +49,25 @@ export const getNoteById = async (req, res, next) => {
 export const createNote = async (req, res, next) => {
   try {
     const { title, content } = req.body;
-    const note = await Note.create({ title, content, user: req.userId });
 
-    logger.info({ userId: req.userId, noteId: note._id }, 'Note created');
-    res.status(201).json({ success: true, note });
+    // HTML content ko sanitize karo
+    const cleanContent = sanitizeHtml(content, sanitizeOptions);
+
+    const note = await Note.create({
+      title,
+      content: cleanContent,
+      user: req.userId,
+    });
+
+    logger.info(
+      { userId: req.userId, noteId: note._id },
+      'Note created'
+    );
+
+    res.status(201).json({
+      success: true,
+      note,
+    });
   } catch (error) {
     next(error);
   }
@@ -42,15 +79,33 @@ export const updateNote = async (req, res, next) => {
     const { title, content } = req.body;
 
     // Pehle check karo note exist karti hai AUR isi user ki hai
-    const note = await Note.findOne({ _id: req.params.id, user: req.userId });
-    if (!note) return next(new AppError('Note not found', 404));
+    const note = await Note.findOne({
+      _id: req.params.id,
+      user: req.userId,
+    });
+
+    if (!note) {
+      return next(new AppError('Note not found', 404));
+    }
 
     note.title = title ?? note.title;
-    note.content = content ?? note.content;
+
+    // Content ko sanitize karke save karo
+    note.content = content
+      ? sanitizeHtml(content, sanitizeOptions)
+      : note.content;
+
     await note.save();
 
-    logger.info({ userId: req.userId, noteId: note._id }, 'Note updated');
-    res.status(200).json({ success: true, note });
+    logger.info(
+      { userId: req.userId, noteId: note._id },
+      'Note updated'
+    );
+
+    res.status(200).json({
+      success: true,
+      note,
+    });
   } catch (error) {
     next(error);
   }
@@ -59,11 +114,24 @@ export const updateNote = async (req, res, next) => {
 // @route DELETE /api/notes/:id
 export const deleteNote = async (req, res, next) => {
   try {
-    const note = await Note.findOneAndDelete({ _id: req.params.id, user: req.userId });
-    if (!note) return next(new AppError('Note not found', 404));
+    const note = await Note.findOneAndDelete({
+      _id: req.params.id,
+      user: req.userId,
+    });
 
-    logger.info({ userId: req.userId, noteId: req.params.id }, 'Note deleted');
-    res.status(200).json({ success: true, message: 'Note deleted successfully' });
+    if (!note) {
+      return next(new AppError('Note not found', 404));
+    }
+
+    logger.info(
+      { userId: req.userId, noteId: req.params.id },
+      'Note deleted'
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Note deleted successfully',
+    });
   } catch (error) {
     next(error);
   }
