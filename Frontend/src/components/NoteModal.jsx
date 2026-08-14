@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import RichTextEditor from './RichTextEditor';
 
 const NoteModal = ({ isOpen, onClose, onSave, initialData }) => {
@@ -29,6 +30,8 @@ const NoteModal = ({ isOpen, onClose, onSave, initialData }) => {
     setIsSaving(true);
     try {
       await onSave({ title, content });
+    } catch (error) {
+      toast.error('Failed to Save Notes');
     } finally {
       setIsSaving(false);
     }

@@ -3,7 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 
-const RichTextEditor = ({ content, onChange }) => {
+const RichTextEditor = ({ value, onChange }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -11,7 +11,7 @@ const RichTextEditor = ({ content, onChange }) => {
         placeholder: 'Write your note...',
       }),
     ],
-    content: content || '',
+    value: value || '',
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -29,10 +29,10 @@ const RichTextEditor = ({ content, onChange }) => {
 
     const currentContent = editor.getHTML();
 
-    if (content !== currentContent) {
-      editor.commands.setContent(content || '', false);
+    if (value !== currentContent) {
+      editor.commands.setContent(value || '', false);
     }
-  }, [content, editor]);
+  }, [value, editor]);
 
   if (!editor) return null;
 

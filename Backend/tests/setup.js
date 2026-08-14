@@ -5,9 +5,13 @@ export const connectTestDB = async () => {
   await mongoose.connect(uri);
 };
 
+
 export const closeTestDB = async () => {
-  await mongoose.connection.dropDatabase(); // test DB clean karke chhodo
-  await mongoose.connection.close();
+  try {
+    await mongoose.connection.dropDatabase();
+  } finally {
+    await mongoose.connection.close();
+  }
 };
 
 export const clearTestDB = async () => {

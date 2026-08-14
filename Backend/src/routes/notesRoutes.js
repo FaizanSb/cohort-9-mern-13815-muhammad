@@ -1,5 +1,5 @@
 import express from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { protect } from '../middlewares/authMiddleware.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
 import {
@@ -15,13 +15,24 @@ const router = express.Router();
 router.use(protect); // ye SAARI notes routes ko protect kar deta hai ek hi line mein
 
 router.get('/', getNotes);
-router.get('/:id', getNoteById);
+router.get('/:id', [param('id').isMongoId().withMessage('invalid notes id')],validateRequest,getNoteById);
 
 router.post(
   '/',
   [
-    body('title').trim().notEmpty().withMessage('Title is required'),
-    body('content').notEmpty().withMessage('Content is required'),
+    body('title')
+      .isString()
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Title is required'),
+
+    body('content')
+      .isString()
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Content is required'),
   ],
   validateRequest,
   createNote
@@ -30,8 +41,23 @@ router.post(
 router.put(
   '/:id',
   [
-    body('title').optional().isString().trim().notEmpty().withMessage('Title cannot be empty'),
-    body('content').optional().isString().trim().notEmpty().withMessage('Content cannot be empty'),
+    param('id')
+      .isMongoId()
+      .withMessage('Invalid note ID'),
+
+    body('title')
+      .isString()
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Title is required'),
+
+    body('content')
+      .isString()
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Content is required'),
   ],
   validateRequest,
   updateNote
