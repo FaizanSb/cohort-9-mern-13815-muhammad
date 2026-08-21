@@ -9,6 +9,7 @@ import {
   updateNote,
   deleteNote,
 } from '../controllers/notesController.js';
+import { summarizeNote } from '../controllers/notesController.js';
 
 const router = express.Router();
 
@@ -63,5 +64,6 @@ router.put(
   updateNote
 );
 router.delete('/:id', deleteNote);
+router.post('/:id/summarize', summarizeNote);
 
 export default router;
