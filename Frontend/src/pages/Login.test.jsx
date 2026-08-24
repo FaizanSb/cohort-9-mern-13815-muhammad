@@ -1,16 +1,32 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
+
 import Login from './Login';
 import { AuthProvider } from '../context/AuthContext';
 
-// AuthContext ke andar API call hoti hai — usko yahan "mock" kar rahe hain
-// taake test real backend se connect na ho, sirf component ka behavior check ho
 jest.mock('../api/axios', () => ({
   __esModule: true,
   default: {
-    get: jest.fn(() => Promise.reject({ response: { status: 401 } })), // /me call, "not logged in" simulate
-    post: jest.fn(() => Promise.resolve({ data: { user: { id: '1', name: 'Test', email: 'test@example.com' } } })),
+    get: jest.fn(() =>
+      Promise.reject({
+        response: {
+          status: 401,
+        },
+      })
+    ),
+
+    post: jest.fn(() =>
+      Promise.resolve({
+        data: {
+          user: {
+            id: '1',
+            name: 'Test',
+            email: 'test@example.com',
+          },
+        },
+      })
+    ),
   },
 }));
 
@@ -25,23 +41,43 @@ const renderLogin = () => {
 };
 
 describe('Login Page', () => {
-  it('renders email and password inputs', () => {
+  it('renders email and password inputs', async () => {
     renderLogin();
-    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
+
+    const emailInput = await screen.findByPlaceholderText(
+      'you@example.com'
+    );
+
+    const passwordInput = await screen.findByPlaceholderText(
+      '••••••••'
+    );
+
+    expect(emailInput).toBeInTheDocument();
+    expect(passwordInput).toBeInTheDocument();
   });
 
-  it('renders the login button', () => {
+  it('renders the login button', async () => {
     renderLogin();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+
+    const loginButton = await screen.findByRole('button', {
+      name: /log in/i,
+    });
+
+    expect(loginButton).toBeInTheDocument();
   });
 
   it('allows typing into email and password fields', async () => {
     const user = userEvent.setup();
+
     renderLogin();
 
-    const emailInput = screen.getByPlaceholderText(/email/i);
-    const passwordInput = screen.getByPlaceholderText(/password/i);
+    const emailInput = await screen.findByPlaceholderText(
+      'you@example.com'
+    );
+
+    const passwordInput = await screen.findByPlaceholderText(
+      '••••••••'
+    );
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, '123456');
@@ -50,8 +86,13 @@ describe('Login Page', () => {
     expect(passwordInput).toHaveValue('123456');
   });
 
-  it('shows link to signup page', () => {
+  it('shows link to signup page', async () => {
     renderLogin();
-    expect(screen.getByText(/sign up/i)).toBeInTheDocument();
+
+    const signupLink = await screen.findByRole('link', {
+      name: /sign up/i,
+    });
+
+    expect(signupLink).toBeInTheDocument();
   });
 });

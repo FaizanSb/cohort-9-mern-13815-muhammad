@@ -2,18 +2,28 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { summarizeNote } from '../api/notesApi';
 
-const NoteCard = ({ note, onEdit, onDelete }) => {
+// 5 pastel colors — background + left border accent, cycle hote hain
+const PIN_COLORS = [
+  { bg: 'bg-green-50', border: 'border-l-green-400' },
+  { bg: 'bg-pink-50', border: 'border-l-pink-400' },
+  { bg: 'bg-blue-50', border: 'border-l-blue-400' },
+  { bg: 'bg-purple-50', border: 'border-l-purple-400' },
+  { bg: 'bg-orange-50', border: 'border-l-orange-400' },
+];
+
+const NoteCard = ({ note, pinnedIndex, onEdit, onDelete, onTogglePin }) => {
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
 
+  const isPinned = note.pinned;
+  const colorSet = isPinned ? PIN_COLORS[pinnedIndex % PIN_COLORS.length] : null;
+
   const handleSummarize = async () => {
-    // Agar summary already generate ho chuki hai, dobara API call na karo — bas toggle karo
     if (summary) {
       setShowSummary((prev) => !prev);
       return;
     }
-
     setIsSummarizing(true);
     try {
       const res = await summarizeNote(note._id);
@@ -27,8 +37,23 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-      <h3 className="font-semibold text-lg mb-2 truncate">{note.title}</h3>
+    <div
+      className={`rounded-lg shadow p-4 hover:shadow-md transition-shadow border-l-4 ${
+        isPinned ? `${colorSet.bg} ${colorSet.border}` : 'bg-white border-l-transparent'
+      }`}
+    >
+      <div className="flex justify-between items-start mb-2 gap-2">
+        <h3 className="font-semibold text-lg truncate flex-1">{note.title}</h3>
+        <button
+          onClick={() => onTogglePin(note._id)}
+          title={isPinned ? 'Unpin note' : 'Pin note'}
+          className={`text-lg leading-none shrink-0 transition-opacity ${
+            isPinned ? 'opacity-100' : 'opacity-30 hover:opacity-60'
+          }`}
+        >
+          📌
+        </button>
+      </div>
 
       <div
         className="prose prose-sm max-w-none line-clamp-3"
@@ -36,7 +61,7 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
       />
 
       {showSummary && summary && (
-        <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md text-sm text-gray-700">
+        <div className="mt-3 p-3 bg-purple-100/60 border border-purple-200 rounded-md text-sm text-gray-700">
           <p className="font-medium text-purple-700 mb-1">✨ AI Summary</p>
           {summary}
         </div>
@@ -47,11 +72,7 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
           {new Date(note.updatedAt).toLocaleDateString()}
         </span>
         <div className="flex gap-3">
-          <button
-            onClick={handleSummarize}
-            disabled={isSummarizing}
-            className="text-purple-600 text-sm hover:underline disabled:opacity-50"
-          >
+          <button onClick={handleSummarize} disabled={isSummarizing} className="text-purple-600 text-sm hover:underline disabled:opacity-50">
             {isSummarizing ? 'Summarizing...' : summary ? (showSummary ? 'Hide Summary' : 'Show Summary') : '✨ Summarize'}
           </button>
           <button onClick={() => onEdit(note)} className="text-blue-600 text-sm hover:underline">
