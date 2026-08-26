@@ -8,6 +8,7 @@ import {
   createNote,
   updateNote,
   deleteNote,
+  togglePin
 } from '../controllers/notesController.js';
 import { summarizeNote } from '../controllers/notesController.js';
 
@@ -65,5 +66,6 @@ router.put(
 );
 router.delete('/:id', deleteNote);
 router.post('/:id/summarize', summarizeNote);
+router.patch('/:id/pin', togglePin);
 
 export default router;

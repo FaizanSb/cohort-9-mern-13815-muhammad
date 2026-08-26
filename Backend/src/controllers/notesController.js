@@ -13,13 +13,21 @@ const sanitizeOptions = {
 // Sirf logged-in user ki notes
 export const getNotes = async (req, res, next) => {
   try {
-    const notes = await Note.find({ user: req.userId }).sort({ createdAt: -1 });
+    const { sort, search } = req.query;
 
-    res.status(200).json({
-      success: true,
-      count: notes.length,
-      notes,
-    });
+    let sortOption = { pinned: -1, updatedAt: -1 };
+    if (sort === 'alpha_asc') sortOption = { pinned: -1, title: 1 };
+    else if (sort === 'alpha_desc') sortOption = { pinned: -1, title: -1 };
+
+    const filter = { user: req.userId };
+
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i'); // 'i' = case-insensitive
+      filter.$or = [{ title: searchRegex }, { content: searchRegex }];
+    }
+
+    const notes = await Note.find(filter).sort(sortOption);
+    res.status(200).json({ success: true, count: notes.length, notes });
   } catch (error) {
     next(error);
   }
@@ -186,6 +194,22 @@ export const summarizeNote = async (req, res, next) => {
       return next(new AppError('Invalid or missing Gemini API key', 500));
     }
     
+    next(error);
+  }
+};
+
+// @route PATCH /api/notes/:id/pin
+export const togglePin = async (req, res, next) => {
+  try {
+    const note = await Note.findOne({ _id: req.params.id, user: req.userId });
+    if (!note) return next(new AppError('Note not found', 404));
+
+    note.pinned = !note.pinned;
+    await note.save();
+
+    logger.info({ userId: req.userId, noteId: note._id, pinned: note.pinned }, 'Note pin toggled');
+    res.status(200).json({ success: true, note });
+  } catch (error) {
     next(error);
   }
 };
