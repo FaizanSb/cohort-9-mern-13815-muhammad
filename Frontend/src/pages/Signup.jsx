@@ -26,7 +26,7 @@ const Signup = () => {
     setLoading(true);
     try {
       await signup(formData);
-      navigate('/dashboard');
+      navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Signup failed');
     } finally {
